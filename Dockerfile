@@ -1,24 +1,27 @@
 FROM alpine:latest
 
-# Устанавливаем необходимые пакеты
+# РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РЅРµРѕР±С…РѕРґРёРјС‹Рµ РїР°РєРµС‚С‹
 RUN apk add --no-cache \
     ca-certificates \
     unzip \
     wget \
     curl
 
-# Скачиваем PocketBase
+# РЎРєР°С‡РёРІР°РµРј PocketBase
 ARG PB_VERSION=0.22.20
 RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip \
     && unzip pocketbase_${PB_VERSION}_linux_amd64.zip \
     && rm pocketbase_${PB_VERSION}_linux_amd64.zip \
     && chmod +x /pocketbase
 
-# Создаём директорию для данных
+# РЎРѕР·РґР°С‘Рј РґРёСЂРµРєС‚РѕСЂРёСЋ РґР»СЏ РґР°РЅРЅС‹С…
 RUN mkdir -p /pb_data
 
-# Expose порт
+# РљРѕРїРёСЂСѓРµРј СЃСѓС‰РµСЃС‚РІСѓСЋС‰СѓСЋ Р±Р°Р·Сѓ РґР°РЅРЅС‹С…
+COPY pb_data/data.db /pb_data/data.db
+
+# Expose РїРѕСЂС‚
 EXPOSE 8080
 
-# Запускаем PocketBase
+# Р—Р°РїСѓСЃРєР°РµРј PocketBase
 CMD ["/pocketbase", "serve", "--http=0.0.0.0:8080"]
