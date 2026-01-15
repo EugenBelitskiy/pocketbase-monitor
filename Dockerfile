@@ -17,9 +17,6 @@ RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSIO
 # Создаём директорию для данных
 RUN mkdir -p /pb_data
 
-# Копируем pb_hooks (если есть)
-COPY pb_hooks /pb/pb_hooks
-
 # Копируем существующую базу данных
 COPY pb_data/data.db /pb_data/data.db
 
@@ -27,5 +24,6 @@ COPY pb_data/data.db /pb_data/data.db
 EXPOSE 8080
 
 # Запускаем PocketBase
-CMD ["/pocketbase", "serve", "--http=0.0.0.0:8080", "--hooksDir=/pb/pb_hooks"]
+CMD ["/pocketbase", "serve", "--http=0.0.0.0:8080"]
+
 
