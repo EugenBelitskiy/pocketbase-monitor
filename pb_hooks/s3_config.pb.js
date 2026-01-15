@@ -1,7 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Настройка S3 при старте приложения
-$app.onBeforeServe().add((e) => {
+// Настройка S3 при старте (для PocketBase v0.35.0)
+onAfterBootstrap((e) => {
     const s3Bucket = $os.getenv('S3_BUCKET')
     const s3Region = $os.getenv('S3_REGION')
     const s3Endpoint = $os.getenv('S3_ENDPOINT')
@@ -9,11 +9,11 @@ $app.onBeforeServe().add((e) => {
     const s3Secret = $os.getenv('S3_SECRET_KEY')
     
     console.log("🔧 S3 Config:")
-    console.log(`   Bucket: ${s3Bucket}`)
-    console.log(`   Region: ${s3Region}`)
-    console.log(`   Endpoint: ${s3Endpoint}`)
-    console.log(`   Access Key: ${s3AccessKey ? s3AccessKey.substring(0, 8) + '...' : 'NOT SET'}`)
-    console.log(`   Secret: ${s3Secret ? '***' : 'NOT SET'}`)
+    console.log("   Bucket:", s3Bucket)
+    console.log("   Region:", s3Region)
+    console.log("   Endpoint:", s3Endpoint)
+    console.log("   Access Key:", s3AccessKey ? s3AccessKey.substring(0, 8) + "..." : "NOT SET")
+    console.log("   Secret:", s3Secret ? "***" : "NOT SET")
     
     if (!s3Bucket || !s3Region || !s3Endpoint || !s3AccessKey || !s3Secret) {
         console.error("❌ Не все S3 переменные установлены!")
@@ -36,6 +36,6 @@ $app.onBeforeServe().add((e) => {
         
         console.log("✅ S3 настройки применены успешно")
     } catch (err) {
-        console.error(`❌ Ошибка применения S3 настроек: ${err}`)
+        console.error("❌ Ошибка применения S3 настроек:", err)
     }
 })
