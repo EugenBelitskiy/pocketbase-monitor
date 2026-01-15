@@ -1,6 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-onAfterBootstrap((e) => {
+// Настройка S3 при старте приложения
+$app.onBeforeServe().add((e) => {
     const s3Bucket = $os.getenv('S3_BUCKET')
     const s3Region = $os.getenv('S3_REGION')
     const s3Endpoint = $os.getenv('S3_ENDPOINT')
