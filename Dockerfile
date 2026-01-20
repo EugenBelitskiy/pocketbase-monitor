@@ -14,16 +14,20 @@ RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSIO
     && rm pocketbase_${PB_VERSION}_linux_amd64.zip \
     && chmod +x /pocketbase
 
-# Создаём директорию для данных
-RUN mkdir -p /pb_data
+# Создаём директории для данных и хуков
+RUN mkdir -p /pb_data /pb_hooks
 
 # Копируем существующую базу данных
 COPY pb_data/data.db /pb_data/data.db
+
+# Копируем хуки (если существуют)
+COPY pb_hooks/* /pb_hooks/ 2>/dev/null || true
 
 # Expose порт
 EXPOSE 8080
 
 # Запускаем PocketBase
 CMD ["/pocketbase", "serve", "--http=0.0.0.0:8080"]
+
 
 
