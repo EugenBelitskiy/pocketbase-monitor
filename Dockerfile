@@ -24,11 +24,12 @@ COPY pb_data/data.db /pb_data/data.db
 RUN mkdir -p /pb_hooks
 
 # Копируем hooks
-COPY pb_hooks/cleanup_auxiliary.pb.js pb_hooks/cleanup_auxiliary.go
+COPY pb_hooks/cleanup_auxiliary.pb.js pb_hooks/cleanup_auxiliary.pb.js
 
 # Expose порт
 EXPOSE 8080
 
 # Запускаем PocketBase
 CMD ["/pocketbase", "serve", "--http=0.0.0.0:8080"]
+
 
