@@ -1,35 +1,31 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Очистка auxiliary.db каждый день в 09:00 UTC
-cronAdd("cleanup_auxiliary", "0 9 * * *", () => {
+// Очистка auxiliary.db каждый день в 01:00 UTC
+cronAdd("cleanup_auxiliary", "0 1 * * *", () => {
     console.log("🧹 Запуск очистки auxiliary.db...");
     
-    try {
-        // Пробуем выполнить команду напрямую
-        const cmd = "cd pb_data && ls -lh auxiliary.db* 2>/dev/null && du -sh auxiliary.db* 2>/dev/null && rm -fv auxiliary.db auxiliary.db-shm auxiliary.db-wal";
-        
-        const output = $os.exec("bash", "-c", cmd);
-        
-        if (output && output.length > 0) {
-            console.log("📊 Результат выполнения:");
-            console.log(output);
-            console.log("✅ Очистка завершена!");
-        } else {
-            console.log("ℹ️ Файлы не найдены или команда не вернула вывод");
-        }
-        
-    } catch (err) {
-        console.error(`❌ Ошибка выполнения: ${err}`);
-        
-        // Запасной вариант - пробуем через отдельные команды
+    let deletedCount = 0;
+    
+    // Пробуем удалить каждый файл отдельно
+    const files = [
+        "pb_data/auxiliary.db",
+        "pb_data/auxiliary.db-shm", 
+        "pb_data/auxiliary.db-wal"
+    ];
+    
+    for (const file of files) {
         try {
-            console.log("🔄 Пробуем альтернативный способ...");
-            $os.exec("rm", "-f", "pb_data/auxiliary.db");
-            $os.exec("rm", "-f", "pb_data/auxiliary.db-shm");
-            $os.exec("rm", "-f", "pb_data/auxiliary.db-wal");
-            console.log("✅ Файлы удалены через прямой вызов rm");
-        } catch (err2) {
-            console.error(`❌ И запасной вариант не сработал: ${err2}`);
+            $os.exec("rm", "-f", file);
+            console.log(`   ✅ Удалён: ${file}`);
+            deletedCount++;
+        } catch (err) {
+            console.log(`   ℹ️ Не удалось удалить ${file}: ${err}`);
         }
+    }
+    
+    if (deletedCount > 0) {
+        console.log(`✅ Очистка завершена! Удалено файлов: ${deletedCount}`);
+    } else {
+        console.log("ℹ️ Файлы не найдены или не удалось удалить");
     }
 });
