@@ -5,66 +5,44 @@ cronAdd("cleanup_auxiliary", "0 1 * * *", () => {
     console.log("🧹 Запуск очистки auxiliary.db...");
     
     try {
-        // ПРАВИЛЬНЫЙ путь к pb_data (относительно корня приложения)
-        const dataDir = "./pb_data";
-        const auxiliaryPath = `${dataDir}/auxiliary.db`;
-        const shmPath = `${dataDir}/auxiliary.db-shm`;
-        const walPath = `${dataDir}/auxiliary.db-wal`;
-        
-        console.log(`🔍 Проверка директории: ${dataDir}`);
-        
-        let totalSize = 0;
-        let deletedFiles = [];
-        
-        // Удаляем auxiliary.db
+        // Проверяем наличие файлов
+        let checkResult;
         try {
-            const size = $os.getFileSize(auxiliaryPath);
-            if (size > 0) {
-                console.log(`📊 Найден auxiliary.db: ${(size / 1024 / 1024).toFixed(2)} MB`);
-                totalSize += size;
-                $os.remove(auxiliaryPath);
-                deletedFiles.push("auxiliary.db");
-                console.log(`   ✅ auxiliary.db удалён`);
-            }
+            checkResult = $os.exec("ls", "-lh", "pb_data/auxiliary.db", "pb_data/auxiliary.db-shm", "pb_data/auxiliary.db-wal");
+            console.log("📊 Найденные файлы:");
+            console.log(checkResult);
         } catch (e) {
-            console.log(`   ℹ️ auxiliary.db не найден (${e.message})`);
+            console.log("ℹ️ Некоторые или все файлы auxiliary.db* отсутствуют");
         }
         
-        // Удаляем auxiliary.db-shm
+        // Считаем размер ДО удаления (в байтах)
+        let sizeBefore = 0;
         try {
-            const size = $os.getFileSize(shmPath);
-            if (size > 0) {
-                console.log(`📊 Найден auxiliary.db-shm: ${(size / 1024 / 1024).toFixed(2)} MB`);
-                totalSize += size;
-                $os.remove(shmPath);
-                deletedFiles.push("auxiliary.db-shm");
-                console.log(`   ✅ auxiliary.db-shm удалён`);
-            }
+            const sizeCmd = $os.exec("sh", "-c", 
+                "du -b pb_data/auxiliary.db pb_data/auxiliary.db-shm pb_data/auxiliary.db-wal 2>/dev/null | awk '{sum+=$1} END {print sum}'"
+            );
+            sizeBefore = parseInt(sizeCmd.trim()) || 0;
         } catch (e) {
-            console.log(`   ℹ️ auxiliary.db-shm не найден (${e.message})`);
+            // Игнорируем ошибку, если файлы не найдены
         }
         
-        // Удаляем auxiliary.db-wal
-        try {
-            const size = $os.getFileSize(walPath);
-            if (size > 0) {
-                console.log(`📊 Найден auxiliary.db-wal: ${(size / 1024 / 1024).toFixed(2)} MB`);
-                totalSize += size;
-                $os.remove(walPath);
-                deletedFiles.push("auxiliary.db-wal");
-                console.log(`   ✅ auxiliary.db-wal удалён`);
+        if (sizeBefore > 0) {
+            console.log(`📊 Размер ДО очистки: ${(sizeBefore / 1024 / 1024).toFixed(2)} MB`);
+            
+            // Удаляем файлы
+            try {
+                $os.exec("rm", "-f", "pb_data/auxiliary.db", "pb_data/auxiliary.db-shm", "pb_data/auxiliary.db-wal");
+                console.log("   ✅ Файлы auxiliary.db* удалены");
+            } catch (e) {
+                console.error(`   ❌ Ошибка удаления: ${e.message}`);
             }
-        } catch (e) {
-            console.log(`   ℹ️ auxiliary.db-wal не найден (${e.message})`);
-        }
-        
-        if (deletedFiles.length > 0) {
-            console.log(`✅ Очистка завершена! Удалено файлов: ${deletedFiles.length}, освобождено: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+            
+            console.log(`✅ Очистка завершена! Освобождено: ${(sizeBefore / 1024 / 1024).toFixed(2)} MB`);
         } else {
-            console.log("⚠️ Нечего удалять - файлы не найдены по пути ./pb_data/");
+            console.log("ℹ️ Файлы auxiliary.db* не найдены или уже пусты");
         }
         
     } catch (err) {
-        console.error(`❌ Критическая ошибка очистки: ${err.message}`);
+        console.error(`❌ Критическая ошибка: ${err.message}`);
     }
 });
