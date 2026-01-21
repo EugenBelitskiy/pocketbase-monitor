@@ -5,35 +5,31 @@ cronAdd("cleanup_auxiliary", "0 9 * * *", () => {
     console.log("🧹 Запуск очистки auxiliary.db...");
     
     try {
-        const result = $os.exec("sh", "-c", `
-            cd pb_data || exit 1
-            
-            if ls auxiliary.db* >/dev/null 2>&1; then
-                echo "📊 Найденные файлы:"
-                ls -lh auxiliary.db* 2>/dev/null
-                
-                # Считаем размер в байтах
-                SIZE=$(du -b auxiliary.db auxiliary.db-shm auxiliary.db-wal 2>/dev/null | awk '{sum+=$1} END {print sum}')
-                
-                if [ "$SIZE" -gt 0 ]; then
-                    # Конвертируем в MB через awk
-                    SIZE_MB=$(echo "$SIZE" | awk '{printf "%.2f", $1/1024/1024}')
-                    echo "📊 Размер ДО очистки: \${SIZE_MB} MB"
-                    
-                    rm -f auxiliary.db auxiliary.db-shm auxiliary.db-wal
-                    echo "✅ Файлы удалены. Освобождено: \${SIZE_MB} MB"
-                else
-                    echo "ℹ️ Файлы пусты"
-                fi
-            else
-                echo "ℹ️ Файлы auxiliary.db* не найдены"
-            fi
-        `);
+        // Пробуем выполнить команду напрямую
+        const cmd = "cd pb_data && ls -lh auxiliary.db* 2>/dev/null && du -sh auxiliary.db* 2>/dev/null && rm -fv auxiliary.db auxiliary.db-shm auxiliary.db-wal";
         
-        console.log(result);
-        console.log("✅ Очистка завершена!");
+        const output = $os.exec("bash", "-c", cmd);
+        
+        if (output && output.length > 0) {
+            console.log("📊 Результат выполнения:");
+            console.log(output);
+            console.log("✅ Очистка завершена!");
+        } else {
+            console.log("ℹ️ Файлы не найдены или команда не вернула вывод");
+        }
         
     } catch (err) {
-        console.error(`❌ Ошибка: ${err}`);
+        console.error(`❌ Ошибка выполнения: ${err}`);
+        
+        // Запасной вариант - пробуем через отдельные команды
+        try {
+            console.log("🔄 Пробуем альтернативный способ...");
+            $os.exec("rm", "-f", "pb_data/auxiliary.db");
+            $os.exec("rm", "-f", "pb_data/auxiliary.db-shm");
+            $os.exec("rm", "-f", "pb_data/auxiliary.db-wal");
+            console.log("✅ Файлы удалены через прямой вызов rm");
+        } catch (err2) {
+            console.error(`❌ И запасной вариант не сработал: ${err2}`);
+        }
     }
 });
