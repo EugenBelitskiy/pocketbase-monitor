@@ -1,7 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 // Очистка auxiliary.db каждый день в 01:00 UTC
-cronAdd("cleanup_auxiliary", "0 1 * * *", () => {
+cronAdd("cleanup_auxiliary", "0 1,13 * * *", () => {
     console.log("🧹 Запуск очистки auxiliary.db...");
     
     let deletedCount = 0;
